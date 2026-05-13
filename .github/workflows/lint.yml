@@ -1,0 +1,46 @@
+name: lint
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install yq
+        run: sudo snap install yq || (sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 && sudo chmod +x /usr/local/bin/yq)
+      - name: name == dir(skills)
+        run: |
+          for f in skills/*/SKILL.md; do
+            dir=$(basename "$(dirname "$f")")
+            name=$(yq '.name' --front-matter=extract "$f")
+            [ "$dir" = "$name" ] || { echo "FAIL: $f name=$name dir=$dir"; exit 1; }
+          done
+      - name: name == dir(commands)
+        run: |
+          for f in commands/*/COMMAND.md; do
+            dir=$(basename "$(dirname "$f")")
+            name=$(yq '.name' --front-matter=extract "$f")
+            [ "$dir" = "$name" ] || { echo "FAIL: $f name=$name dir=$dir"; exit 1; }
+          done
+      - name: version coherence
+        run: |
+          VER=$(cat VERSION)
+          fail=0
+          for f in skills/*/SKILL.md agents/*.agent.md commands/*/COMMAND.md; do
+            v=$(yq '.version' --front-matter=extract "$f")
+            if [ "$v" != "$VER" ]; then
+              echo "FAIL: $f version=$v != VERSION=$VER"
+              fail=1
+            fi
+          done
+          [ $fail -eq 0 ]
+      - name: type field valid
+        run: |
+          declare -A want=([skills]=skill [agents]=agent [commands]=command)
+          for f in skills/*/SKILL.md agents/*.agent.md commands/*/COMMAND.md; do
+            top=$(echo "$f" | cut -d/ -f1)
+            t=$(yq '.type' --front-matter=extract "$f")
+            [ "$t" = "${want[$top]}" ] || { echo "FAIL: $f type=$t want=${want[$top]}"; exit 1; }
+          done

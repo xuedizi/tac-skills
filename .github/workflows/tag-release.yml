@@ -1,0 +1,19 @@
+name: tag-release
+on:
+  push:
+    tags: ['v*']
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: tag == VERSION
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          VER=$(cat VERSION)
+          [ "$TAG" = "$VER" ] || { echo "tag $TAG != VERSION $VER"; exit 1; }
+      - name: CHANGELOG entry exists
+        run: grep -q "^## v${GITHUB_REF_NAME#v}" CHANGELOG.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
