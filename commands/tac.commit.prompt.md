@@ -1,5 +1,4 @@
 ---
-mode: agent
 description: TAC /tac.commit slash command — TODO 填充触发语义。
 ---
 

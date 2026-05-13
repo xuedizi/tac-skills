@@ -1,5 +1,4 @@
 ---
-mode: agent
 description: TAC /tac.gate slash command — TODO 填充触发语义。
 ---
 

@@ -1,5 +1,4 @@
 ---
-mode: agent
 description: TAC /tac.pr slash command — TODO 填充触发语义。
 ---
 
